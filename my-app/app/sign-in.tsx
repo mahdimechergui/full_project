@@ -30,6 +30,14 @@ export default function SignInScreen() {
       return;
     }
 
+    const user = JSON.parse(data);
+
+    // Basic validation
+    if (email.toLowerCase() !== user.email.toLowerCase() || password !== user.password) {
+      Alert.alert('Login Failed', 'Invalid email or password. Please try again.');
+      return;
+    }
+
     setIsLoading(true);
     // Simulate a brief network request
     setTimeout(async () => {

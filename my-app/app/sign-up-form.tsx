@@ -4,26 +4,40 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function SignUpFormScreen() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: '',
-    birthday: '',
+    email: '',
+    password: '',
+    phoneNumber: '',
+    birthday: new Date(),
     academicYear: '',
     degree: '',
   });
 
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   const handleSignUp = async () => {
-    const { fullName, birthday, academicYear, degree } = formData;
+    const { fullName, email, password, phoneNumber, birthday, academicYear, degree } = formData;
     
-    if (!fullName || !birthday || !academicYear || !degree) {
+    if (!fullName || !email || !password || !phoneNumber || !academicYear || !degree) {
       Alert.alert('Incomplete Form', 'Please fill in all fields before continuing.');
       return;
     }
 
     try {
-      const user = { fullName, birthday, academicYear, degree };
+      const user = { 
+        fullName, 
+        email, 
+        password, 
+        phoneNumber, 
+        birthday: birthday.toLocaleDateString(), 
+        academicYear, 
+        degree 
+      };
       await AsyncStorage.setItem('vital_user_data', JSON.stringify(user));
       router.replace('/sign-in');
     } catch (e) {
@@ -31,8 +45,15 @@ export default function SignUpFormScreen() {
     }
   };
 
-  const updateField = (field: string, value: string) => {
+  const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      updateField('birthday', selectedDate);
+    }
   };
 
   return (
@@ -41,7 +62,7 @@ export default function SignUpFormScreen() {
       style={styles.container}
     >
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
             <MaterialCommunityIcons name="arrow-left" size={24} color="#94a3b8" />
@@ -63,40 +84,89 @@ export default function SignUpFormScreen() {
             />
           </View>
 
+          <Text style={styles.label}>Email Address</Text>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="email-outline" size={20} color="#64748b" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. john@vital.ai"
+              placeholderTextColor="#475569"
+              value={formData.email}
+              onChangeText={(v) => updateField('email', v)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="lock-outline" size={20} color="#64748b" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Min. 8 characters"
+              placeholderTextColor="#475569"
+              value={formData.password}
+              onChangeText={(v) => updateField('password', v)}
+              secureTextEntry
+            />
+          </View>
+
+          <Text style={styles.label}>Phone Number</Text>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="phone-outline" size={20} color="#64748b" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. +1 234 567 890"
+              placeholderTextColor="#475569"
+              value={formData.phoneNumber}
+              onChangeText={(v) => updateField('phoneNumber', v)}
+              keyboardType="phone-pad"
+            />
+          </View>
+
           <Text style={styles.label}>Birthday</Text>
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="cake-variant-outline" size={20} color="#64748b" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Jan 01, 2000"
-              placeholderTextColor="#475569"
+          <Pressable style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
+            <MaterialCommunityIcons name="calendar-edit" size={20} color="#a855f7" style={styles.inputIcon} />
+            <Text style={[styles.input, { color: '#fff', paddingTop: 16 }]}>
+              {formData.birthday.toLocaleDateString()}
+            </Text>
+          </Pressable>
+
+          {showDatePicker && (
+            <DateTimePicker
               value={formData.birthday}
-              onChangeText={(v) => updateField('birthday', v)}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onDateChange}
+              maximumDate={new Date()}
             />
-          </View>
+          )}
 
-          <Text style={styles.label}>Academic Year</Text>
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="school-outline" size={20} color="#64748b" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 2nd Year"
-              placeholderTextColor="#475569"
-              value={formData.academicYear}
-              onChangeText={(v) => updateField('academicYear', v)}
-            />
-          </View>
-
-          <Text style={styles.label}>Degree / Program</Text>
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="clipboard-text-outline" size={20} color="#64748b" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Computer Science"
-              placeholderTextColor="#475569"
-              value={formData.degree}
-              onChangeText={(v) => updateField('degree', v)}
-            />
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={styles.label}>Year</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. 2nd"
+                  placeholderTextColor="#475569"
+                  value={formData.academicYear}
+                  onChangeText={(v) => updateField('academicYear', v)}
+                />
+              </View>
+            </View>
+            <View style={{ flex: 2, marginLeft: 8 }}>
+              <Text style={styles.label}>Degree</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. CS"
+                  placeholderTextColor="#475569"
+                  value={formData.degree}
+                  onChangeText={(v) => updateField('degree', v)}
+                />
+              </View>
+            </View>
           </View>
 
           <Pressable 
@@ -106,7 +176,7 @@ export default function SignUpFormScreen() {
             ]} 
             onPress={handleSignUp}
           >
-            <Text style={styles.buttonText}>SIGN UP</Text>
+            <Text style={styles.buttonText}>CREATE ACCOUNT</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -122,10 +192,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   header: {
-    marginBottom: 40,
+    marginBottom: 32,
   },
   backBtn: {
     width: 44,
@@ -151,11 +221,11 @@ const styles = StyleSheet.create({
   },
   label: {
     color: '#94a3b8',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 10,
+    marginBottom: 8,
     marginLeft: 4,
   },
   inputContainer: {
@@ -166,7 +236,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1e293b',
     paddingHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 20,
     height: 56,
   },
   inputIcon: {
@@ -176,6 +246,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   button: {
     backgroundColor: '#a855f7',
