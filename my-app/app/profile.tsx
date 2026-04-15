@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Pressable, Image, Alert, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,8 +7,20 @@ import * as ImagePicker from 'expo-image-picker';
 import { StatusBar } from 'expo-status-bar';
 
 import { ScreenScrollView } from '@/components/ScreenScrollView';
-import { ThemedText } from '@/components/themed-text';
-import { events } from '@/app/data/vital-data';
+import { events, EventItem } from '@/app/data/vital-data';
+
+function parseEventDateRange(dateString: string) {
+  const trimmed = dateString.trim();
+  const rangeMatch = trimmed.match(/^(\w+)\s+(\d+)-(\d+),\s*(\d{4})$/);
+  if (rangeMatch) {
+    const [_, month, start, end, year] = rangeMatch;
+    const startDate = new Date(`${month} ${start}, ${year}`);
+    const endDate = new Date(`${month} ${end}, ${year}`);
+    return { startDate, endDate };
+  }
+  const date = new Date(trimmed);
+  return { startDate: date, endDate: date };
+}
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -25,7 +37,6 @@ export default function ProfileScreen() {
       if (userRaw) setUserData(JSON.parse(userRaw));
       if (imageRaw) setProfileImage(imageRaw);
       if (eventsRaw) {
-        // Handle both string IDs and number IDs for compatibility
         const parsed = JSON.parse(eventsRaw);
         setJoinedEventIds(parsed.map((id: any) => Number(id)));
       }
@@ -58,7 +69,6 @@ export default function ProfileScreen() {
           text: "Yes, Exit", 
           onPress: async () => {
             await AsyncStorage.removeItem('vital_logged_in');
-            // We keep user data for returning, but clear the login session
             router.replace('/sign-in');
           }
         }
@@ -66,7 +76,49 @@ export default function ProfileScreen() {
     );
   };
 
+  const todayNormalized = new Date();
+  todayNormalized.setHours(0, 0, 0, 0);
+
   const joinedEvents = events.filter(e => joinedEventIds.includes(e.id));
+  
+  const upcomingJoined = joinedEvents.filter(e => {
+    const { endDate } = parseEventDateRange(e.date);
+    return endDate >= todayNormalized;
+  });
+
+  const pastJoined = joinedEvents.filter(e => {
+    const { endDate } = parseEventDateRange(e.date);
+    return endDate < todayNormalized;
+  });
+
+  const renderMiniEventList = (eventList: EventItem[], title: string) => {
+    if (eventList.length === 0) return null;
+    return (
+      <View style={styles.eventSubSection}>
+        <Text style={styles.eventSubTitle}>{title}</Text>
+        {eventList.map(event => (
+          <View key={event.id} style={styles.eventMiniCard}>
+            <View style={[styles.eventIconBox, { backgroundColor: event.status === 'confirmed' ? '#163f25' : '#45350c' }]}>
+              <MaterialCommunityIcons 
+                name="calendar-check" 
+                size={20} 
+                color={event.status === 'confirmed' ? '#22c55e' : '#f59e0b'} 
+              />
+            </View>
+            <View style={styles.eventInfo}>
+              <Text style={styles.eventName}>{event.name}</Text>
+              <Text style={styles.eventDate}>{event.date}</Text>
+            </View>
+            <View style={styles.statusTag}>
+               <Text style={[styles.statusTabText, { color: event.status === 'confirmed' ? '#22c55e' : '#f59e0b' }]}>
+                 {event.status.toUpperCase()}
+               </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -112,26 +164,10 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>EVENTS I JOINED</Text>
           {joinedEvents.length > 0 ? (
-            joinedEvents.map(event => (
-              <View key={event.id} style={styles.eventMiniCard}>
-                <View style={[styles.eventIconBox, { backgroundColor: event.status === 'confirmed' ? '#163f25' : '#45350c' }]}>
-                  <MaterialCommunityIcons 
-                    name="calendar-check" 
-                    size={20} 
-                    color={event.status === 'confirmed' ? '#22c55e' : '#f59e0b'} 
-                  />
-                </View>
-                <View style={styles.eventInfo}>
-                  <Text style={styles.eventName}>{event.name}</Text>
-                  <Text style={styles.eventDate}>{event.date}</Text>
-                </View>
-                <View style={styles.statusTag}>
-                   <Text style={[styles.statusTabText, { color: event.status === 'confirmed' ? '#22c55e' : '#f59e0b' }]}>
-                     {event.status.toUpperCase()}
-                   </Text>
-                </View>
-              </View>
-            ))
+            <>
+              {renderMiniEventList(upcomingJoined, "Upcoming Activities")}
+              {renderMiniEventList(pastJoined, "Historical Records")}
+            </>
           ) : (
             <View style={styles.emptyEvents}>
               <Text style={styles.emptyText}>You haven't joined any events yet.</Text>
@@ -230,6 +266,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 2,
     marginBottom: 16,
+  },
+  eventSubSection: {
+    marginBottom: 20,
+  },
+  eventSubTitle: {
+    color: '#475569',
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 12,
+    marginLeft: 4,
   },
   infoRow: {
     flexDirection: 'row',

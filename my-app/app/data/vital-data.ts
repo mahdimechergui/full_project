@@ -105,6 +105,28 @@ export const events: EventItem[] = [
     status: "draft",
     organizer: "Career Team",
   },
+  {
+    id: 5,
+    name: "Intro to Cybersecurity",
+    date: "January 15, 2026",
+    time: "10:00 - 12:00",
+    venue: "Room 102",
+    attendees: { registered: 45, capacity: 45 },
+    budget: 200,
+    status: "confirmed",
+    organizer: "Security Team",
+  },
+  {
+    id: 6,
+    name: "Winter Coding Camp",
+    date: "December 10, 2025",
+    time: "Full Week",
+    venue: "Innovation Hub",
+    attendees: { registered: 80, capacity: 80 },
+    budget: 4500,
+    status: "confirmed",
+    organizer: "Dev Team",
+  },
 ];
 
 export const members: MemberRecord[] = [
