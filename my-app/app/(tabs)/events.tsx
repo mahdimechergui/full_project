@@ -121,6 +121,84 @@ export default function EventsScreen() {
     }).start();
   }, [filtered.length, selectedDate, fadeAnim]);
 
+  const todayNormalized = new Date();
+  todayNormalized.setHours(0, 0, 0, 0);
+
+  const upcomingEventsList = filtered.filter(item => {
+    const range = eventRanges.find(r => r.event.id === item.id);
+    return range ? range.endDate >= todayNormalized : true;
+  });
+
+  const pastEventsList = filtered.filter(item => {
+    const range = eventRanges.find(r => r.event.id === item.id);
+    return range ? range.endDate < todayNormalized : false;
+  });
+
+  const renderEventList = (eventList: typeof events, title: string) => {
+    if (eventList.length === 0) return null;
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionHeader}>{title.toUpperCase()}</Text>
+        {eventList.map((event) => {
+          const status = statusStyles[event.status as keyof typeof statusStyles] || statusStyles.draft;
+          const isJoined = joinedEventIds.includes(String(event.id)) || joinedEventIds.includes(event.id as any);
+
+          return (
+            <View key={event.id} style={styles.eventCard}>
+              <View style={styles.cardHeaderRow}>
+                <ThemedText type="defaultSemiBold" style={styles.eventCardName}>{event.name}</ThemedText>
+                <View style={[styles.statusPill, { backgroundColor: status.background }]}> 
+                  <Text style={[styles.statusLabel, { color: status.color }]}>{status.label}</Text>
+                </View>
+              </View>
+              <View style={styles.detailRow}>
+                <MaterialCommunityIcons name="calendar" size={18} color="#38bdf8" />
+                <ThemedText style={styles.detailText}>{event.date}</ThemedText>
+              </View>
+              <View style={styles.detailRow}>
+                <MaterialCommunityIcons name="clock" size={18} color="#a78bfa" />
+                <ThemedText style={styles.detailText}>{event.time}</ThemedText>
+              </View>
+              <View style={styles.detailRow}>
+                <MaterialCommunityIcons name="map-marker" size={18} color="#f472b6" />
+                <ThemedText style={styles.detailText}>{event.venue}</ThemedText>
+              </View>
+              <View style={styles.metaRow}>
+                <ThemedText style={styles.metaText}>{event.attendees.registered}/{event.attendees.capacity} registered</ThemedText>
+                <ThemedText style={styles.metaText}>{event.attendees.capacity - event.attendees.registered} remaining</ThemedText>
+              </View>
+
+              <View style={styles.actionRow}>
+                {event.status === 'confirmed' ? (
+                  event.attendees.registered < event.attendees.capacity || isJoined ? (
+                    <Pressable 
+                      style={[styles.joinButton, isJoined && styles.joinedButton]} 
+                      onPress={() => toggleJoinEvent(String(event.id))}
+                    >
+                      <Text style={styles.joinButtonText}>{isJoined ? 'Joined' : 'Join'}</Text>
+                    </Pressable>
+                  ) : (
+                    <View style={styles.fullButton}>
+                      <Text style={styles.fullButtonText}>Full</Text>
+                    </View>
+                  )
+                ) : event.status === 'planning' ? (
+                  <Pressable style={styles.requestButton}>
+                    <Text style={styles.requestButtonText}>Request</Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.notAvailableBox}>
+                    <Text style={styles.notAvailableText}>Not available</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   const getMonthMatrix = (refDate: Date) => {
     const firstOfMonth = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
     const firstDay = firstOfMonth.getDay();
@@ -198,7 +276,7 @@ export default function EventsScreen() {
       <ThemedText style={styles.subtitle}>Manage the upcoming schedule across VITAL.</ThemedText>
 
       <View style={styles.filterInfoRow}>
-        <Text style={styles.filterInfoText}>{selectedDateLabel ? `Showing events for ${selectedDateLabel}` : `${filtered.length} upcoming events`}</Text>
+        <Text style={styles.filterInfoText}>{selectedDateLabel ? `Showing events for ${selectedDateLabel}` : `${filtered.length} total events found`}</Text>
         {selectedDate && (
           <Pressable onPress={() => setSelectedDate(null)} style={styles.clearButton}>
             <Text style={styles.clearText}>Clear</Text>
@@ -312,62 +390,15 @@ export default function EventsScreen() {
       </Modal>
 
       <Animated.View style={{ opacity: fadeAnim, width: '100%' }}>
-        {filtered.map((event) => {
-          const status = statusStyles[event.status as keyof typeof statusStyles] || statusStyles.draft;
-          const isJoined = joinedEventIds.includes(event.id);
-
-          return (
-            <View key={event.id} style={styles.eventCard}>
-              <View style={styles.cardHeaderRow}>
-                <ThemedText type="defaultSemiBold" style={styles.eventCardName}>{event.name}</ThemedText>
-                <View style={[styles.statusPill, { backgroundColor: status.background }]}> 
-                  <Text style={[styles.statusLabel, { color: status.color }]}>{status.label}</Text>
-                </View>
-              </View>
-              <View style={styles.detailRow}>
-                <MaterialCommunityIcons name="calendar" size={18} color="#38bdf8" />
-                <ThemedText style={styles.detailText}>{event.date}</ThemedText>
-              </View>
-              <View style={styles.detailRow}>
-                <MaterialCommunityIcons name="clock" size={18} color="#a78bfa" />
-                <ThemedText style={styles.detailText}>{event.time}</ThemedText>
-              </View>
-              <View style={styles.detailRow}>
-                <MaterialCommunityIcons name="map-marker" size={18} color="#f472b6" />
-                <ThemedText style={styles.detailText}>{event.venue}</ThemedText>
-              </View>
-              <View style={styles.metaRow}>
-                <ThemedText style={styles.metaText}>{event.attendees.registered}/{event.attendees.capacity} registered</ThemedText>
-                <ThemedText style={styles.metaText}>{event.attendees.capacity - event.attendees.registered} remaining</ThemedText>
-              </View>
-
-              <View style={styles.actionRow}>
-                {event.status === 'confirmed' ? (
-                  event.attendees.registered < event.attendees.capacity || isJoined ? (
-                    <Pressable 
-                      style={[styles.joinButton, isJoined && styles.joinedButton]} 
-                      onPress={() => toggleJoinEvent(event.id)}
-                    >
-                      <Text style={styles.joinButtonText}>{isJoined ? 'Joined' : 'Join'}</Text>
-                    </Pressable>
-                  ) : (
-                    <View style={styles.fullButton}>
-                      <Text style={styles.fullButtonText}>Full</Text>
-                    </View>
-                  )
-                ) : event.status === 'planning' ? (
-                  <Pressable style={styles.requestButton}>
-                    <Text style={styles.requestButtonText}>Request</Text>
-                  </Pressable>
-                ) : (
-                  <View style={styles.notAvailableBox}>
-                    <Text style={styles.notAvailableText}>Not available</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          );
-        })}
+        {renderEventList(upcomingEventsList, "Upcoming Events")}
+        {renderEventList(pastEventsList, "Past Events")}
+        
+        {filtered.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <MaterialCommunityIcons name="calendar-search" size={64} color="#1f2937" />
+            <Text style={styles.emptyText}>No events found matching your search.</Text>
+          </View>
+        )}
       </Animated.View>
     </ScreenScrollView>
   );
@@ -377,14 +408,36 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     backgroundColor: '#050508',
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   title: {
     marginBottom: 8,
   },
   subtitle: {
     color: '#94a3b8',
+    marginBottom: 24,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    color: '#a855f7',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
     marginBottom: 16,
+    marginLeft: 4,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: 16,
+  },
+  emptyText: {
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '600',
   },
   filterInfoRow: {
     flexDirection: 'row',
