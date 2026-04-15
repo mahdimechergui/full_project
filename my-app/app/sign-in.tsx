@@ -23,22 +23,13 @@ export default function SignInScreen() {
   }, []);
 
   const handleSignIn = async () => {
-    // Check if user has "joined" (filled the form)
-    const data = await AsyncStorage.getItem('vital_user_data');
-    if (!data) {
-      Alert.alert('Access Denied', 'Please click "Join now" and fill in your details first.');
-      return;
-    }
-
-    const user = JSON.parse(data);
-
     setIsLoading(true);
     // Simulate a brief network request
     setTimeout(async () => {
       await AsyncStorage.setItem('vital_logged_in', 'true');
       setIsLoading(false);
       router.replace('/(tabs)');
-    }, 600);
+    }, 500);
   };
 
   return (
