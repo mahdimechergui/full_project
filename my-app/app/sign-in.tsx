@@ -4,9 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { useAuth } from './_layout';
 
 export default function SignInScreen() {
   const router = useRouter();
+  const { setIsLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +29,7 @@ export default function SignInScreen() {
     // Simulate a brief network request
     setTimeout(async () => {
       await AsyncStorage.setItem('vital_logged_in', 'true');
+      setIsLoggedIn(true);
       setIsLoading(false);
       router.replace('/(tabs)');
     }, 500);

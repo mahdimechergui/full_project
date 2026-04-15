@@ -1,5 +1,5 @@
 import 'react-native-reanimated';
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -8,6 +8,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator } from 'react-native';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+// Simple Auth Context to share state between screens and layout
+export const AuthContext = createContext<{
+  isLoggedIn: boolean | null;
+  setIsLoggedIn: (val: boolean) => void;
+}>({
+  isLoggedIn: null,
+  setIsLoggedIn: () => {},
+});
+
+export const useAuth = () => useContext(AuthContext);
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -53,16 +64,18 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="sign-in" options={{ animation: 'fade' }} />
-          <Stack.Screen name="sign-up-form" options={{ animation: 'slide_from_right' }} />
-          <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+      <SafeAreaProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="sign-in" options={{ animation: 'fade' }} />
+            <Stack.Screen name="sign-up-form" options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </AuthContext.Provider>
   );
 }

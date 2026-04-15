@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '@/app/_layout';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -21,6 +22,7 @@ const drawerWidth = Math.min(Dimensions.get('window').width * 0.72, 300);
 
 export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (value: boolean) => void }) {
   const router = useRouter();
+  const { setIsLoggedIn } = useAuth();
   const segments = useSegments() as readonly string[];
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
@@ -60,6 +62,7 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (value: boo
   const handleReset = async () => {
     setOpen(false);
     await AsyncStorage.removeItem('vital_logged_in');
+    setIsLoggedIn(false);
     router.replace('/sign-in');
   };
 
