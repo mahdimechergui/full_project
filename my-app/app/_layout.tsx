@@ -34,10 +34,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (isLoggedIn === null) return;
 
-    const inAuthGroup = segments[0] === 'enter';
+    const inAuthGroup = segments[0] === 'sign-in';
 
     if (!isLoggedIn && !inAuthGroup) {
-      router.replace('/enter');
+      router.replace('/sign-in');
     } else if (isLoggedIn && inAuthGroup) {
       router.replace('/(tabs)');
     }
@@ -55,7 +55,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="enter" options={{ animation: 'fade' }} />
+          <Stack.Screen name="sign-in" options={{ animation: 'fade' }} />
           <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>

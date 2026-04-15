@@ -60,7 +60,7 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (value: boo
   const handleReset = async () => {
     setOpen(false);
     await AsyncStorage.removeItem('vital_logged_in');
-    router.replace('/enter');
+    router.replace('/sign-in');
   };
 
   return (
