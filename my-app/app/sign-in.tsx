@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -10,15 +10,33 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const data = await AsyncStorage.getItem('vital_user_data');
+      if (data) {
+        setUserData(JSON.parse(data));
+      }
+    };
+    fetchUserData();
+  }, []);
 
   const handleSignIn = async () => {
+    // Check if user has "joined" (filled the form)
+    const data = await AsyncStorage.getItem('vital_user_data');
+    if (!data) {
+      Alert.alert('Access Denied', 'Please click "Join now" and fill in your details first.');
+      return;
+    }
+
     setIsLoading(true);
     // Simulate a brief network request
     setTimeout(async () => {
       await AsyncStorage.setItem('vital_logged_in', 'true');
       setIsLoading(false);
       router.replace('/(tabs)');
-    }, 1000);
+    }, 800);
   };
 
   return (
@@ -33,8 +51,8 @@ export default function SignInScreen() {
           <View style={styles.logoBox}>
             <Text style={styles.logoText}>V</Text>
           </View>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to continue to VITAL</Text>
+          <Text style={styles.title}>{userData ? `Welcome, ${userData.fullName.split(' ')[0]}` : 'Welcome Back'}</Text>
+          <Text style={styles.subtitle}>{userData ? 'Please sign in to access your dashboard' : 'Sign in to continue to VITAL'}</Text>
         </View>
 
         <View style={styles.form}>
@@ -81,7 +99,7 @@ export default function SignInScreen() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
-            <Pressable>
+            <Pressable onPress={() => router.push('/sign-up-form')}>
               <Text style={styles.signUpText}>Join now</Text>
             </Pressable>
           </View>
