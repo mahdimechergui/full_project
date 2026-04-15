@@ -152,10 +152,6 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginBottom: 18,
   },
-  subtitle: {
-    color: '#94a3b8',
-    marginBottom: 18,
-  },
   scheduleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
