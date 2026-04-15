@@ -3,6 +3,7 @@ import { Animated, Dimensions, Pressable, StyleSheet, Text, View } from 'react-n
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -56,6 +57,12 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (value: boo
     router.push(route as any);
   };
 
+  const handleReset = async () => {
+    setOpen(false);
+    await AsyncStorage.removeItem('vital_logged_in');
+    router.replace('/enter');
+  };
+
   return (
     <View pointerEvents="box-none" style={styles.wrapper}>
       <Animated.View pointerEvents={open ? 'auto' : 'none'} style={[styles.overlay, { opacity: overlayOpacity }]}>
@@ -86,6 +93,19 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (value: boo
               </Pressable>
             );
           })}
+        </View>
+
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+          <Pressable 
+            onPress={handleReset}
+            style={({ pressed }) => [
+              styles.resetButton,
+              pressed && { opacity: 0.7 }
+            ]}
+          >
+            <MaterialCommunityIcons name="refresh" size={18} color="#475569" />
+            <Text style={styles.resetText}>RESET SESSION</Text>
+          </Pressable>
         </View>
       </Animated.View>
     </View>
@@ -164,5 +184,23 @@ const styles = StyleSheet.create({
     color: '#e2e8f0',
     fontSize: 16,
     fontWeight: '600',
+  },
+  footer: {
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#111827',
+  },
+  resetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 20,
+    opacity: 0.5,
+  },
+  resetText: {
+    color: '#475569',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
 });
