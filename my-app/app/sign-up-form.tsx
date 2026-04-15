@@ -125,21 +125,39 @@ export default function SignUpFormScreen() {
           </View>
 
           <Text style={styles.label}>Birthday</Text>
-          <Pressable style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
-            <MaterialCommunityIcons name="calendar-edit" size={20} color="#a855f7" style={styles.inputIcon} />
-            <Text style={[styles.input, { color: '#fff', paddingTop: 16 }]}>
-              {formData.birthday.toLocaleDateString()}
-            </Text>
-          </Pressable>
+          {Platform.OS === 'web' ? (
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons name="calendar-edit" size={20} color="#64748b" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor="#475569"
+                value={formData.birthday.toISOString().split('T')[0]}
+                onChangeText={(v) => {
+                  const d = new Date(v);
+                  if (!isNaN(d.getTime())) updateField('birthday', d);
+                }}
+              />
+            </View>
+          ) : (
+            <>
+              <Pressable style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
+                <MaterialCommunityIcons name="calendar-edit" size={20} color="#a855f7" style={styles.inputIcon} />
+                <Text style={[styles.input, { color: '#fff', paddingTop: 16 }]}>
+                  {formData.birthday.toLocaleDateString()}
+                </Text>
+              </Pressable>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={formData.birthday}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onDateChange}
-              maximumDate={new Date()}
-            />
+              {showDatePicker && (
+                <DateTimePicker
+                  value={formData.birthday}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                />
+              )}
+            </>
           )}
 
           <View style={styles.row}>
