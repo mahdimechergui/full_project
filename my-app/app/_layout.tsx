@@ -34,11 +34,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (isLoggedIn === null) return;
 
-    const inAuthGroup = segments[0] === 'sign-in';
+    // These screens are accessible when NOT logged in
+    const isAuthPath = segments[0] === 'sign-in' || segments[0] === 'sign-up-form';
 
-    if (!isLoggedIn && !inAuthGroup) {
+    if (!isLoggedIn && !isAuthPath) {
       router.replace('/sign-in');
-    } else if (isLoggedIn && inAuthGroup) {
+    } else if (isLoggedIn && isAuthPath) {
       router.replace('/(tabs)');
     }
   }, [isLoggedIn, segments]);
