@@ -202,7 +202,7 @@ export default function EventsScreen() {
   const getMonthMatrix = (refDate: Date) => {
     const firstOfMonth = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
     const firstDay = firstOfMonth.getDay();
-    const daysIn = new Date(refDate.getFullYear(), refDate.getMonth + 1, 0).getDate();
+    const daysIn = new Date(refDate.getFullYear(), refDate.getMonth() + 1, 0).getDate();
 
     const matrix: Array<Array<Date | null>> = [];
     let currentWeek: Array<Date | null> = Array(firstDay).fill(null);
