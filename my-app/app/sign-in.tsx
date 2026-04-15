@@ -32,19 +32,13 @@ export default function SignInScreen() {
 
     const user = JSON.parse(data);
 
-    // Basic validation
-    if (email.toLowerCase() !== user.email.toLowerCase() || password !== user.password) {
-      Alert.alert('Login Failed', 'Invalid email or password. Please try again.');
-      return;
-    }
-
     setIsLoading(true);
     // Simulate a brief network request
     setTimeout(async () => {
       await AsyncStorage.setItem('vital_logged_in', 'true');
       setIsLoading(false);
       router.replace('/(tabs)');
-    }, 800);
+    }, 600);
   };
 
   return (
