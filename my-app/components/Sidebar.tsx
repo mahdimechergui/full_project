@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const navItems = [
   { key: 'index', label: 'Home', icon: 'view-dashboard-outline', route: '/(tabs)' },
+  { key: 'profile', label: 'Profile', icon: 'account-outline', route: '/profile' },
   { key: 'agents', label: 'AI Hub', icon: 'robot', route: '/(tabs)/agents' },
   { key: 'events', label: 'Events', icon: 'calendar-month', route: '/(tabs)/events' },
   { key: 'members', label: 'Members', icon: 'account-group-outline', route: '/(tabs)/members' },

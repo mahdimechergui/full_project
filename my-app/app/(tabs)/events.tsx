@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Animated, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, Modal, Pressable, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { ThemedText } from '@/components/themed-text';
@@ -48,6 +49,7 @@ export default function EventsScreen() {
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [joinedEventIds, setJoinedEventIds] = useState<string[]>([]);
   
   // Modal Local State
   const [tempView, setTempView] = useState<ViewState>('month');
@@ -56,6 +58,31 @@ export default function EventsScreen() {
   const [fadeAnim] = useState(() => new Animated.Value(1));
 
   const today = new Date();
+
+  useEffect(() => {
+    const loadJoinedEvents = async () => {
+      const stored = await AsyncStorage.getItem('vital_joined_events');
+      if (stored) {
+        setJoinedEventIds(JSON.parse(stored));
+      }
+    };
+    loadJoinedEvents();
+  }, []);
+
+  const toggleJoinEvent = async (eventId: string) => {
+    const isJoined = joinedEventIds.includes(eventId);
+    let newList;
+    if (isJoined) {
+      newList = joinedEventIds.filter(id => id !== eventId);
+      Alert.alert('Unregistered', 'You have removed this event from your profile.');
+    } else {
+      newList = [...joinedEventIds, eventId];
+      Alert.alert('Success!', 'You are now registered for this event.');
+    }
+    
+    setJoinedEventIds(newList);
+    await AsyncStorage.setItem('vital_joined_events', JSON.stringify(newList));
+  };
 
   const eventRanges = useMemo(() => events.map(event => {
     const { startDate, endDate } = parseEventDateRange(event.date);
@@ -97,7 +124,7 @@ export default function EventsScreen() {
   const getMonthMatrix = (refDate: Date) => {
     const firstOfMonth = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
     const firstDay = firstOfMonth.getDay();
-    const daysIn = new Date(refDate.getFullYear(), refDate.getMonth() + 1, 0).getDate();
+    const daysIn = new Date(refDate.getFullYear(), refDate.getMonth + 1, 0).getDate();
 
     const matrix: Array<Array<Date | null>> = [];
     let currentWeek: Array<Date | null> = Array(firstDay).fill(null);
@@ -221,7 +248,7 @@ export default function EventsScreen() {
                   <Text style={[styles.viewToggleText, tempView === 'month' && styles.viewToggleTextActive]}>Month</Text>
                 </Pressable>
               </View>
-
+              
               <Pressable onPress={() => setIsFilterOpen(false)} style={styles.modalCloseIcon}>
                 <MaterialCommunityIcons name="close" size={24} color="#94a3b8" />
               </Pressable>
@@ -287,6 +314,8 @@ export default function EventsScreen() {
       <Animated.View style={{ opacity: fadeAnim, width: '100%' }}>
         {filtered.map((event) => {
           const status = statusStyles[event.status as keyof typeof statusStyles] || statusStyles.draft;
+          const isJoined = joinedEventIds.includes(event.id);
+
           return (
             <View key={event.id} style={styles.eventCard}>
               <View style={styles.cardHeaderRow}>
@@ -314,9 +343,12 @@ export default function EventsScreen() {
 
               <View style={styles.actionRow}>
                 {event.status === 'confirmed' ? (
-                  event.attendees.registered < event.attendees.capacity ? (
-                    <Pressable style={styles.joinButton}>
-                      <Text style={styles.joinButtonText}>Join</Text>
+                  event.attendees.registered < event.attendees.capacity || isJoined ? (
+                    <Pressable 
+                      style={[styles.joinButton, isJoined && styles.joinedButton]} 
+                      onPress={() => toggleJoinEvent(event.id)}
+                    >
+                      <Text style={styles.joinButtonText}>{isJoined ? 'Joined' : 'Join'}</Text>
                     </Pressable>
                   ) : (
                     <View style={styles.fullButton}>
@@ -624,6 +656,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+  },
+  joinedButton: {
+    backgroundColor: '#0f172a',
+    borderColor: '#22c55e',
+    borderWidth: 1,
   },
   joinButtonText: {
     color: '#fff',
