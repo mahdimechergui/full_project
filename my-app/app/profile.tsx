@@ -158,6 +158,16 @@ export default function ProfileScreen() {
               <Text style={styles.infoValue}>{userData?.degree || 'N/A'}</Text>
             </View>
           </View>
+          <View style={[styles.infoRow, { marginTop: 12 }]}>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Phone</Text>
+              <Text style={styles.infoValue}>{userData?.phoneNumber || 'N/A'}</Text>
+            </View>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Birthday</Text>
+              <Text style={styles.infoValue}>{userData?.birthday || 'N/A'}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Events Section */}
