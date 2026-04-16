@@ -160,11 +160,17 @@ export default function ProfileScreen() {
           </View>
           <View style={[styles.infoRow, { marginTop: 12 }]}>
             <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Phone</Text>
+              <View style={styles.infoCardHeader}>
+                <MaterialCommunityIcons name="phone" size={14} color="#a855f7" />
+                <Text style={styles.infoLabel}>Phone</Text>
+              </View>
               <Text style={styles.infoValue}>{userData?.phoneNumber || 'N/A'}</Text>
             </View>
             <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Birthday</Text>
+              <View style={styles.infoCardHeader}>
+                <MaterialCommunityIcons name="calendar-heart" size={14} color="#a855f7" />
+                <Text style={styles.infoLabel}>Birthday</Text>
+              </View>
               <Text style={styles.infoValue}>{userData?.birthday || 'N/A'}</Text>
             </View>
           </View>
@@ -299,12 +305,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1e293b',
   },
+  infoCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   infoLabel: {
     color: '#64748b',
     fontSize: 11,
     fontWeight: '700',
-    marginBottom: 6,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   infoValue: {
     color: '#f1f5f9',
