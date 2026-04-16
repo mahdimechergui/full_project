@@ -37,6 +37,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
           <Stack.Screen name="sign-in" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="sign-up-form" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="profile" options={{ animation: 'slide_from_right', headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
         <StatusBar style="auto" />
