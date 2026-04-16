@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Slot, useSegments } from 'expo-router';
@@ -24,7 +24,9 @@ export default function TabLayout() {
     if (last === 'members') return 'Members';
     if (last === 'vault') return 'Vault';
     if (last === 'sentinel') return 'Security Center';
-    return last.charAt(0).toUpperCase() + last.slice(1);
+    if (last === 'profile') return 'Admin Profile';
+    if (last === 'edit-profile') return 'Identity Editor';
+    return last.charAt(0).toUpperCase() + last.slice(1).replace('-', ' ');
   }, [segments]);
 
   useEffect(() => {
